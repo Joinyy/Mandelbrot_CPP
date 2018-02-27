@@ -10,7 +10,6 @@ extern unsigned int XW;
 extern unsigned int YW;
 // THREADCOUNT Muss YW ganzzahlig Teilen können ohne Rest!
 extern unsigned int THREADCOUNT;
-extern sf::RenderTexture mandelbrotTexture;
 
 #define C_MAP_LEN 256
 
