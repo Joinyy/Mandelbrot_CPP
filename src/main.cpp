@@ -12,9 +12,9 @@
 #include <iostream>
 #include <array>
 
-#include "CarthCoords.h"
-#include "helper_functions.hpp"
-#include "mandelbrot.hpp"
+#include "../hdr/CarthCoords.h"
+#include "../hdr/helper_functions.hpp"
+#include "../hdr/mandelbrot.hpp"
 
 unsigned int XW = 1920;
 unsigned int YW = 1080;

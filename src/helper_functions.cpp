@@ -1,4 +1,4 @@
-#include "helper_functions.hpp"
+#include "../hdr/helper_functions.hpp"
 
 color ColorMap[C_MAP_LEN];
 

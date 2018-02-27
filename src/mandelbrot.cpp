@@ -1,5 +1,5 @@
-#include "mandelbrot.hpp"
-#include "helper_functions.hpp"
+#include "../hdr/mandelbrot.hpp"
+#include "../hdr/helper_functions.hpp"
 
 sf::Vertex **arr;
 

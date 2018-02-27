@@ -1,4 +1,4 @@
-#include "CarthCoords.h"
+#include "../hdr/CarthCoords.h"
 
 CarthCoords::CarthCoords(double zoom, double centerX, double centerY, double offsetX, double offsetY, int xPixMax, int yPixMax)
 {
