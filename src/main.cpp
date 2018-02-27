@@ -24,10 +24,11 @@ unsigned int THREADCOUNT;
 sf::Texture texture;
 sf::Sprite sprite;
 sf::Text text;
-std::atomic<bool> focus = true, debug = false, redraw_active = false, redraw = true;
+std::atomic<bool> focus = true, debug = false, showpos = false, redraw_active = false, redraw = true;
 
 std::string debugstring = "";
 std::atomic<double> zoom = 3;
+std::atomic<int> maxIterations = 1000;
 std::atomic<CarthCoords *> CooSys;
 
 void renderingThread(sf::RenderWindow* window)
@@ -48,7 +49,7 @@ void renderingThread(sf::RenderWindow* window)
 		if (redraw) {
 			task = new std::packaged_task<void(double, double, double, double, int, int, int)>(mandelMain);
 			future = task->get_future();
-			a = new std::thread(std::move(*task), CooSys.load()->getCenter().x, CooSys.load()->getCenter().y, CooSys.load()->getZoom(), 20, XW, YW, 3000);
+			a = new std::thread(std::move(*task), CooSys.load()->getCenter().x, CooSys.load()->getCenter().y, CooSys.load()->getZoom(), 20, XW, YW, maxIterations.load());
 			redraw = false;
 			redraw_active = true;
 		}
@@ -71,16 +72,20 @@ void renderingThread(sf::RenderWindow* window)
 		// draw everything here...
 		window->draw(sprite);
 		// Debug Nachrichten
-		if (debug) {
+		if (debug || showpos) {
 			sf::Vector2i position = sf::Mouse::getPosition(*window);
 			sf::Vector2<double> capos = CooSys.load()->pixToCarth(position);
 			std::string dadadubs;
-			dadadubs = std::to_string(capos.x) + '|' + std::to_string(capos.y) + '\n';
-			if (debugstring.length() > 400) {
+			if (showpos) {
+				dadadubs = to_string_prec(capos.x) + '|' + to_string_prec(capos.y) + '\n';
+			}
+			if (debugstring.length() > 500) {
 				int firstNewline = debugstring.find_first_of('\n', 1);
 				debugstring.erase(0, firstNewline + 1);
 			}
-			dadadubs.append(debugstring);
+			if (debug) {
+				dadadubs.append(debugstring);
+			}
 			text.setString(dadadubs);
 			window->draw(text);
 		}
@@ -91,7 +96,7 @@ void renderingThread(sf::RenderWindow* window)
 	}
 	delete task;
 	delete a;
-	delete arr;
+	delete[] arr;
 }
 
 int main(int argc, char *argv[])
@@ -122,7 +127,7 @@ int main(int argc, char *argv[])
 	window.setFramerateLimit(30);
 
 	// Color management
-	std::array<std::string, 5> colormaps = { "jet.csv", "pink.csv", "parula.csv", "summer.csv", "gray.csv" };
+	std::array<std::string, 5> colormaps = { "./res/jet.csv", "./res/pink.csv", "./res/parula.csv", "./res/summer.csv", "./res/gray.csv" };
 	std::size_t colorCounter = 0;
 	if (!loadColors(colormaps.at(colorCounter))) {
 		std::cerr << "Could not load colors.";
@@ -131,10 +136,13 @@ int main(int argc, char *argv[])
 	// Teig für Mandelbrot anrühren
 	CooSys = new CarthCoords(3.0, sf::Vector2<double>(0, 0), sf::Vector2<double>(1.5, 1.5), sf::Vector2i(XW, YW));
 	sf::Font font;
-	if (!font.loadFromFile("FiraMono-Regular.ttf"))
+	if (!font.loadFromFile("./res/FiraMono-Regular.ttf"))
 	{
 		std::cerr << "Load font problem" << std::endl;
 	}
+
+	std::array<int, 8> iterations = { 100, 500, 1000, 2000, 3000, 5000, 7500, 10000 };
+	int itCount = 0;
 
 	text.setFont(font);
 	text.setCharacterSize(15);
@@ -172,14 +180,14 @@ int main(int argc, char *argv[])
 							// Zoom in
 							sf::Vector2i position = sf::Mouse::getPosition(window);
 							CooSys.load()->zoomIn(position.x, position.y, 2.0);
-							debugstring.append("Redraw at: X = " + std::to_string(CooSys.load()->getCenter().x) + " Y = " + std::to_string(CooSys.load()->getCenter().y) + " with Zoom: " + std::to_string(CooSys.load()->getZoom()) + "\n");
+							debugstring.append("Redraw at: X = " + to_string_prec(CooSys.load()->getCenter().x) + " Y = " + to_string_prec(CooSys.load()->getCenter().y) + " with Zoom: " + to_string_prec(CooSys.load()->getZoom()) + "\n");
 							redraw = true;
 						}
 						else {
 							// Zoom out
 							sf::Vector2i position = sf::Mouse::getPosition(window);
 							CooSys.load()->zoomIn(position.x, position.y, 0.75);
-							debugstring.append("Redraw at: X = " + std::to_string(CooSys.load()->getCenter().x) + " Y = " + std::to_string(CooSys.load()->getCenter().y) + " with Zoom: " + std::to_string(CooSys.load()->getZoom()) + "\n");
+							debugstring.append("Redraw at: X = " + to_string_prec(CooSys.load()->getCenter().x) + " Y = " + to_string_prec(CooSys.load()->getCenter().y) + " with Zoom: " + to_string_prec(CooSys.load()->getZoom()) + "\n");
 							redraw = true;
 						}
 					}
@@ -196,6 +204,9 @@ int main(int argc, char *argv[])
 					case sf::Keyboard::D:
 						debug = (debug) ? false : true;
 						break;
+					case sf::Keyboard::P:
+						showpos = (showpos) ? false : true;
+						break;
 					case sf::Keyboard::C:
 						colorCounter++;
 						if (colorCounter >= colormaps.size())
@@ -204,7 +215,17 @@ int main(int argc, char *argv[])
 						loadColors(colormaps.at(colorCounter));
 						redraw = true;
 						break;
+					case sf::Keyboard::I:
+						maxIterations = iterations.at(itCount);
+						debugstring.append("Changing max iterations to " + std::to_string(iterations.at(itCount)) + '\n');
+						itCount++;
+						if (itCount >= iterations.size()) {
+							itCount = 0;
+						}
+						redraw = true;
+						break;
 					default:
+						redraw = true;
 						break;
 					}
 				}

@@ -39,10 +39,10 @@ void mandelThread(int start, int end, double* im_min, double* im_max, double* re
 			iterationen = calculatePoint(c_re, c_im, c_re, c_im, *max_betrag, max_iter);
 
 			PointColor = ColorMap[(int)floor(abs((iterationen / (max_iter*1.0))*255.0))];
-			arr[(x + (YW - y) * XW) * 4]     = PointColor.R;
-			arr[(x + (YW - y) * XW) * 4 + 1] = PointColor.G;
-			arr[(x + (YW - y) * XW) * 4 + 2] = PointColor.B;
-			arr[(x + (YW - y) * XW) * 4 + 3] = 255;
+			arr[(x + (YW - 1 - y) * XW) * 4]     = PointColor.R;
+			arr[(x + (YW - 1 - y) * XW) * 4 + 1] = PointColor.G;
+			arr[(x + (YW - 1 - y) * XW) * 4 + 2] = PointColor.B;
+			arr[(x + (YW - 1 - y) * XW) * 4 + 3] = 255;
 
 		}
 

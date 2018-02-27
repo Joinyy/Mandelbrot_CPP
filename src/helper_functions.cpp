@@ -49,3 +49,8 @@ bool loadColors(std::string fileName) {
 	return retval;
 }
 
+std::string to_string_prec(const double a_value, int prec) {
+	std::ostringstream out;
+	out << std::setprecision(prec) << a_value;
+	return out.str();
+}
