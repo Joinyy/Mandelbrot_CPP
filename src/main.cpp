@@ -19,7 +19,6 @@
 unsigned int XW = 1920;
 unsigned int YW = 1080;
 unsigned int THREADCOUNT;
-sf::RenderTexture mandelbrotTexture;
 
 // Module local data:
 sf::Texture texture;
@@ -33,7 +32,7 @@ std::atomic<CarthCoords *> CooSys;
 
 void renderingThread(sf::RenderWindow* window)
 {
-	if (!mandelbrotTexture.create(XW, YW))
+	if (!texture.create(XW, YW))
 	{
 		std::cerr << "Could not create texture" << std::endl;
 		window->close();
@@ -58,14 +57,7 @@ void renderingThread(sf::RenderWindow* window)
 			std::future_status status = future.wait_for(0ms);
 			if (status == std::future_status::ready && a != NULL) {
 				a->join();
-				mandelbrotTexture.clear();
-				for (std::size_t xxx = 0; xxx < XW; xxx++) {
-					for (std::size_t yyy = 0; yyy < YW; yyy++) {
-						mandelbrotTexture.draw(&arr[xxx][yyy], 1, sf::Points);
-					}
-				}
-				mandelbrotTexture.display();
-				texture = mandelbrotTexture.getTexture();
+				texture.update(arr);
 				sprite.setTexture(texture);
 				redraw_active = false;
 				debugstring.append("Redraw finished\n");
@@ -96,12 +88,10 @@ void renderingThread(sf::RenderWindow* window)
 
 		// end the current frame
 		window->display();
-
-		// end the current frame
-		window->display();
 	}
 	delete task;
 	delete a;
+	delete arr;
 }
 
 int main(int argc, char *argv[])
@@ -115,9 +105,7 @@ int main(int argc, char *argv[])
 	sf::VideoMode Desktop;
 	sf::RenderWindow window(Desktop.getDesktopMode(), "Mandelbrot ist lecker", sf::Style::Fullscreen, settings);
 	sf::Vector2u size = window.getSize();
-	arr = new sf::Vertex*[size.x];
-	for (std::size_t i = 0; i < size.x; i++)
-		arr[i] = new sf::Vertex[size.y];
+	arr = new sf::Uint8[size.x * size.y * 4];
 	XW = size.x;
 	YW = size.y;
 	int ThrCnt = 8;
