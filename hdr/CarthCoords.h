@@ -3,7 +3,7 @@
 #include <SFML/System/Vector2.hpp>
 #include <cmath>
 
-/// Class for managing a carthesian coordinate system in a integer based pixel view
+// Class for managing a carthesian coordinate system in a integer based pixel view
 class CarthCoords
 {
 public:
@@ -42,4 +42,3 @@ private:
 	// Actual window center values in carth
 	sf::Vector2<double> center;
 };
-

@@ -8,7 +8,7 @@
 
 extern unsigned int XW;
 extern unsigned int YW;
-// THREADCOUNT Muss YW ganzzahlig Teilen können ohne Rest!
+// THREADCOUNT Muss YW ganzzahlig Teilen kÃ¶nnen ohne Rest!
 extern unsigned int THREADCOUNT;
 
 #define C_MAP_LEN 256

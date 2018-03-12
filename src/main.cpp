@@ -45,7 +45,7 @@ void renderingThread(sf::RenderWindow* window)
 	// the rendering loop
 	while (window->isOpen())
 	{
-		// Worker für Mandelbrot starten
+		// Worker fÃ¼r Mandelbrot starten
 		if (redraw) {
 			task = new std::packaged_task<void(double, double, double, double, int, int, int)>(mandelMain);
 			future = task->get_future();
@@ -53,7 +53,7 @@ void renderingThread(sf::RenderWindow* window)
 			redraw = false;
 			redraw_active = true;
 		}
-		// worker für Mandelbrot abfragen
+		// worker fÃ¼r Mandelbrot abfragen
 		if (redraw_active) {
 			std::future_status status = future.wait_for(0ms);
 			if (status == std::future_status::ready && a != NULL) {
@@ -106,7 +106,7 @@ int main(int argc, char *argv[])
 	settings.antialiasingLevel = 2;
 	settings.majorVersion = 0;
 	settings.minorVersion = 1;
-	
+
 	sf::VideoMode Desktop;
 	sf::RenderWindow window(Desktop.getDesktopMode(), "Mandelbrot ist lecker", sf::Style::Fullscreen, settings);
 	sf::Vector2u size = window.getSize();
@@ -133,7 +133,7 @@ int main(int argc, char *argv[])
 		std::cerr << "Could not load colors.";
 		return 1;
 	}
-	// Teig für Mandelbrot anrühren
+	// Teig fÃ¼r Mandelbrot anrÃ¼hren
 	CooSys = new CarthCoords(3.0, sf::Vector2<double>(0, 0), sf::Vector2<double>(1.5, 1.5), sf::Vector2i(XW, YW));
 	sf::Font font;
 	if (!font.loadFromFile("./res/FiraMono-Regular.ttf"))
@@ -152,7 +152,7 @@ int main(int argc, char *argv[])
 	text.setStyle(sf::Text::Regular);
 	window.setActive(false);
 	std::thread* renderThr = new std::thread(renderingThread, &window);
-	
+
 	// renderThr->detach();
 	// Main Loop:
 	while (window.isOpen())
@@ -233,7 +233,6 @@ int main(int argc, char *argv[])
 				break;
 			}
 		}
-		
 	}
 	renderThr->join();
 	return 0;

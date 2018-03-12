@@ -15,19 +15,19 @@ CarthCoords::~CarthCoords()
 
 }
 
-/// <returns>Returns a SFML 2D double vector of the coordinate system offset.</returns>
+// Returns a SFML 2D double vector of the coordinate system offset.
 sf::Vector2<double> CarthCoords::getOffset()
 {
 	return this->offset;
 }
 
-/// <returns>Returns a SFML 2D double vector of the window center in carthesian coordinates.</returns>
+// Returns a SFML 2D double vector of the window center in carthesian coordinates.
 sf::Vector2<double> CarthCoords::getCenter()
 {
 	return this->center;
 }
 
-/// <returns>Returns a double of the coordinate system zoom.</returns>
+// Returns a double of the coordinate system zoom.
 double CarthCoords::getZoom()
 {
 	return this->zoom;
@@ -42,7 +42,7 @@ void CarthCoords::zoomIn(int x_pix, int y_pix, double fact)
 void CarthCoords::zoomIn(double x, double y, double fact)
 {
 	double newZoom = this->zoom / fact;
-	
+
 	this->offset.x = (this->offset.x - (x - this->center.x)) - (this->zoom - newZoom) / 2;
 	this->offset.y = (this->offset.y + (y - this->center.y)) - ((this->zoom - newZoom) / 2 * ((this->y_pixMax * 1.0) / this->x_pixMax));
 
@@ -56,7 +56,7 @@ void CarthCoords::zoomIn(double x, double y, double fact)
 	this->center.y = y;
 }
 
-/// <returns>Returns a SFML 2D double vector of the coordinate system equivalent to the pixel input.</returns>
+// Returns a SFML 2D double vector of the coordinate system equivalent to the pixel input.
 sf::Vector2<double> CarthCoords::pixToCarth(sf::Vector2i pos)
 {
 	sf::Vector2<double> retval;
@@ -68,7 +68,7 @@ sf::Vector2<double> CarthCoords::pixToCarth(sf::Vector2i pos)
 	return retval;
 }
 
-/// <returns>Returns a SFML 2D integer vector of the pixel system equivalent to the carthesian input.</returns>
+// Returns a SFML 2D integer vector of the pixel system equivalent to the carthesian input.
 sf::Vector2i CarthCoords::carthToPix(sf::Vector2<double> pos)
 {
 	sf::Vector2i retval;
@@ -82,7 +82,7 @@ sf::Vector2i CarthCoords::carthToPix(sf::Vector2<double> pos)
 
 void CarthCoords::setVariables(double zoom, sf::Vector2<double> center, sf::Vector2<double> offset, sf::Vector2i PixMax)
 {
-	this->zoom = zoom;	
+	this->zoom = zoom;
 	this->center = center;
 	this->x_pixMax = PixMax.x;
 	this->y_pixMax = PixMax.y;

@@ -48,7 +48,7 @@ void mandelThread(int start, int end, double* im_min, double* im_max, double* re
 
 	}
 }
-	
+
 
 int calculatePoint(double x, double y, double xadd, double yadd, double max_betrag_2, int max_iter) {
 	int remain_iter = max_iter;
