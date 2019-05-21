@@ -2,6 +2,7 @@
 
 #include <cmath>
 #include <thread>
+#include <future>
 #include <vector>
 
 #include "Proj.hpp"

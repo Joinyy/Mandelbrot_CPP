@@ -3,7 +3,7 @@
 
 sf::Uint8 *arr;
 
-void mandelThread(int start, int end, double* im_min, double* im_max, double* re_min, double* re_max, double* max_betrag, int max_iter);
+void mandelThread(int ystart, int yend, int xstart, int xend, double* im_min, double* im_max, double* re_min, double* re_max, double* max_betrag, int max_iter);
 int calculatePoint(double x, double y, double xadd, double yadd, double max_betrag_2, int max_iter);
 
 void mandelMain(double x_cent, double y_cent, double zoom, double max_betrag, int xpixels, int ypixels, int max_iter) {
@@ -13,27 +13,61 @@ void mandelMain(double x_cent, double y_cent, double zoom, double max_betrag, in
 	double im_min = y_cent - ((zoom / 2) / xpixels)*ypixels;
 	double im_max = y_cent + ((zoom / 2) / xpixels)*ypixels;
 
-	std::vector<std::thread> ThreadPool(THREADCOUNT);
-	int start = 0, end = ypixels / THREADCOUNT;
+	// std::vector<std::thread> ThreadPool(THREADCOUNT);
+	int WORKCOUNT = 120;
+	int ystart = 0, yend = ypixels / WORKCOUNT;
+	int xstart = 0, xend = xpixels / WORKCOUNT;
+	std::vector<std::future<void>> ThreadPool(THREADCOUNT);
 	for (auto& Thr : ThreadPool) {
-		Thr = std::thread(mandelThread, start, end, &im_min, &im_max, &re_min, &re_max, &max_betrag, max_iter);
-		start += ypixels / THREADCOUNT;
-		end += ypixels / THREADCOUNT;
+		Thr = std::async(std::launch::async, mandelThread, ystart, yend, xstart, xend, &im_min, &im_max, &re_min, &re_max, &max_betrag, max_iter);
+		// Thr = std::thread(mandelThread, start, end, &im_min, &im_max, &re_min, &re_max, &max_betrag, max_iter);
+		// ystart += ypixels / WORKCOUNT;
+		// yend += ypixels / WORKCOUNT;
+		xstart += xpixels / WORKCOUNT;
+		xend += xpixels / WORKCOUNT;
+	}
+	std::vector<std::future_status> statusses;
+	for (auto & Thr : ThreadPool) {
+		statusses.push_back(Thr.wait_for(std::chrono::nanoseconds(1)));
+	}
+	bool goon = true;
+	if (statusses.size() == ThreadPool.size()) {
+		while (goon)
+			for (size_t i = 0; i < ThreadPool.size(); i++) {
+				statusses.at(i) = ThreadPool.at(i).wait_for(std::chrono::nanoseconds(1));
+				if (statusses.at(i) == std::future_status::ready && goon) {
+					ThreadPool.at(i) = std::async(std::launch::async, mandelThread, ystart, yend, xstart, xend, &im_min, &im_max, &re_min, &re_max, &max_betrag, max_iter);
+					xstart += xpixels / WORKCOUNT;
+					xend += xpixels / WORKCOUNT;
+					if (xend > xpixels) {
+						ystart += ypixels / WORKCOUNT;
+						yend += ypixels / WORKCOUNT;
+						xstart = 0;
+						xend = xpixels / WORKCOUNT;
+					}
+					if (yend > ypixels) {
+						goon = false;
+					}
+				}
+			}
 	}
 
 	for (auto & Thr : ThreadPool) {
-		Thr.join();
+		Thr.wait();
 	}
+	// for (auto & Thr : ThreadPool) {
+	// 	Thr.join();
+	// }
 }
 
-void mandelThread(int start, int end, double* im_min, double* im_max, double* re_min, double* re_max, double* max_betrag, int max_iter) {
+void mandelThread(int ystart, int yend, int xstart, int xend, double* im_min, double* im_max, double* re_min, double* re_max, double* max_betrag, int max_iter) {
 	double c_im = 0, c_re = 0;
 	int iterationen = 0;
-	color PointColor;
-	for (int y = start; y < end; y++) {
+	color PointColor(0.0, 0.0, 0.0, 0.0);
+	for (int y = ystart; y < yend; y++) {
 		c_im = *im_min + (*im_max - *im_min)*y / YW;
 
-		for (std::size_t x = 0; x < XW; x++) {
+		for (std::size_t x = xstart; x < xend; x++) {
 			c_re = *re_min + (*re_max - *re_min)*x / XW;
 
 			iterationen = calculatePoint(c_re, c_im, c_re, c_im, *max_betrag, max_iter);
@@ -48,7 +82,6 @@ void mandelThread(int start, int end, double* im_min, double* im_max, double* re
 
 	}
 }
-
 
 int calculatePoint(double x, double y, double xadd, double yadd, double max_betrag_2, int max_iter) {
 	int remain_iter = max_iter;
