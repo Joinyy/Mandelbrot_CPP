@@ -6,7 +6,7 @@
     {
       "type": "shell",
       "label": "cl.exe build active file",
-      "command": "C:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\VC\\bin\\cl.exe",
+      "command": "cl",
       "args": [
         "/Zi",
         "/EHsc",
@@ -26,7 +26,7 @@
             // "LIB": "${env:LIB}${workspaceFolder}\\SFML\\bin;"
           }
         },
-        "command": "C:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\VC\\bin\\cl.exe",
+        "command": "cl",
         "args": [
             "/EHsc",
             "/O2",

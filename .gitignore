@@ -7,7 +7,7 @@
 *.vcxproj*
 
 # If the libs are placed inside the repo:
-SFML
+SFML*
 *.exe
 *.dll
 
