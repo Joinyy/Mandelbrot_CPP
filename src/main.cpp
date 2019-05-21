@@ -4,10 +4,10 @@
 #endif
 #ifdef __linux__
 #define _GLIBCXX_USE_CXX11_ABI 0
+#include <X11/Xlib.h>
 #endif
 
 #include <thread>
-#include <X11/Xlib.h>
 #include <future>
 #include <mutex>
 #include <atomic>

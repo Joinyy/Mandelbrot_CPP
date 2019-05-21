@@ -17,13 +17,10 @@ Aim: Mandelbrot with big floating point precision, fast executing time and multi
 ## Upcoming features
 (When I find some time)
 
-- [ ] Zoom out FROM the current mouse position
-- [ ] Make the colormaps smoother for nicer results
-- [ ] `boost::multiprecision` implementation of all floating point variables in the mandelbrot set
-
-## Done features:
-
-- [x] \*nix compatibility and makefile
+- Zoom out FROM the current mouse position
+- Make the colormaps smoother for nicer results
+- `boost::multiprecision` implementation of all floating point variables in the mandelbrot set
+- \*nix compatibility and makefile
 
 #### Maybes:
 - nVidia CUDA for parallel execution of the mandelbrot set calculation
