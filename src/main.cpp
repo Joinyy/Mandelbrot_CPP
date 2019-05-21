@@ -82,166 +82,26 @@ bool loadColors(std::string fileName) {
 	return retval;
 }
 
+bool loadColorGradient(color & start, color & end, unsigned int steps) {
+	bool retVal = true;
+	if (steps >= C_MAP_LEN) {
+		steps = C_MAP_LEN - 1;
+	}
+	for (int i = 0; i <= steps; i++) {
+		color xx = interpolRGB(start, end, ((double)i / (double)steps));
+		ColorMap[i].R = xx.R;
+		ColorMap[i].G = xx.G;
+		ColorMap[i].B = xx.B;
+		ColorMap[i].A = 255;
+	}
+	return retVal;
+}
+
 std::string to_string_prec(double a_value, int prec) {
 	std::ostringstream out;
 	out << std::setprecision(prec) << a_value;
 	return out.str();
 }
-
-
-/* void renderingThread(sf::RenderWindow* window)
-{
-	if (!texture.create(XW, YW))
-	{
-		std::cerr << "Could not create texture" << std::endl;
-		window->close();
-	}
-	std::packaged_task<void(double x_cent, double y_cent, double zoom, double max_betrag, int xpixels, int ypixels, int max_iter)>* task = NULL;
-	std::future<void> future;
-	std::thread * a = NULL;
-	std::chrono::milliseconds t1(0);
-
-	// Color management
-	std::array<std::string, 5> colormaps = { "./res/jet.csv", "./res/pink.csv", "./res/parula.csv", "./res/summer.csv", "./res/gray.csv" };
-	std::size_t colorCounter = 0;
-	if (!loadColors(colormaps.at(colorCounter))) {
-		std::cerr << "Could not load colors.";
-	}
-	std::array<int, 8> iterations = { 100, 500, 1000, 2000, 3000, 5000, 7500, 10000 };
-	int itCount = 0;
-	// the rendering loop
-	while (window->isOpen()) 
-	{
-		// Worker für Mandelbrot starten
-		if (redraw) {
-			task = new std::packaged_task<void(double, double, double, double, int, int, int)>(mandelMain);
-			future = task->get_future();
-			a = new std::thread(std::move(*task), CooSys.load()->getCenter().x, CooSys.load()->getCenter().y, CooSys.load()->getZoom(), 20, XW, YW, maxIterations.load());
-			redraw = false;
-			redraw_active = true;
-		}
-		// worker für Mandelbrot abfragen
-		if (redraw_active) {
-			std::future_status status = future.wait_for(t1);
-			if (status == std::future_status::ready && a != NULL) {
-				a->join();
-				texture.update(arr);
-				sprite.setTexture(texture);
-				redraw_active = false;
-				debugstring.append("Redraw finished\n");
-			}
-		}
-
-
-		// clear the window with black color
-		window->clear(sf::Color::Black);
-		
-		// draw everything here...
-		window->draw(sprite);
-		// Debug Nachrichten
-		if (debug || showpos) {
-			sf::Vector2i position = sf::Mouse::getPosition(*window);
-			sf::Vector2<double> capos = CooSys.load()->pixToCarth(position);
-			std::string dadadubs;
-			if (showpos) {
-				dadadubs = to_string_prec(capos.x) + '|' + to_string_prec(capos.y) + '\n';
-			}
-			if (debugstring.length() > 500) {
-				int firstNewline = debugstring.find_first_of('\n', 1);
-				debugstring.erase(0, firstNewline + 1);
-			}
-			if (debug) {
-				dadadubs.append(debugstring);
-			}
-			text.setString(dadadubs);
-			window->draw(text);
-		}
-
-
-		// end the current frame
-		window->display();
-		// check all the window's events that were triggered since the last iteration of the loop
-		sf::Event event;
-		while (window->pollEvent(event))
-		{
-			// std::cout << "Event has been detected!" << std::endl;
-			switch (event.type)
-			{
-			// Window control Events:
-			case sf::Event::Closed:
-				window->close();
-			case sf::Event::MouseLeft:
-				focus = false;
-				break;
-			case sf::Event::MouseEntered:
-				focus = true;
-				break;
-			// Mausrad input:
-			case sf::Event::MouseWheelScrolled:
-				if (focus && !redraw && !redraw_active) {
-					if (event.mouseWheelScroll.wheel == sf::Mouse::VerticalWheel) {
-						if (event.mouseWheelScroll.delta > 0) {
-							// Zoom in
-							sf::Vector2i position = sf::Mouse::getPosition(*window);
-							CooSys.load()->zoomIn(position.x, position.y, 2.0);
-							debugstring.append("Redraw at: X = " + to_string_prec(CooSys.load()->getCenter().x) + " Y = " + to_string_prec(CooSys.load()->getCenter().y) + " with Zoom: " + to_string_prec(CooSys.load()->getZoom()) + "\n");
-							redraw = true;
-						}
-						else {
-							// Zoom out
-							sf::Vector2i position = sf::Mouse::getPosition(*window);
-							CooSys.load()->zoomIn(position.x, position.y, 0.75);
-							debugstring.append("Redraw at: X = " + to_string_prec(CooSys.load()->getCenter().x) + " Y = " + to_string_prec(CooSys.load()->getCenter().y) + " with Zoom: " + to_string_prec(CooSys.load()->getZoom()) + "\n");
-							redraw = true;
-						}
-					}
-				}
-				break;
-			// Tastatur Input:
-			case sf::Event::KeyPressed:
-				if (focus) {
-					switch (event.key.code)
-					{
-					case sf::Keyboard::Escape:
-						window->close();
-						break;
-					case sf::Keyboard::D:
-						debug = (debug) ? false : true;
-						break;
-					case sf::Keyboard::P:
-						showpos = (showpos) ? false : true;
-						break;
-					case sf::Keyboard::C:
-						colorCounter++;
-						if (colorCounter >= colormaps.size())
-							colorCounter = 0;
-						debugstring.append("Loading colormap: " + colormaps.at(colorCounter) + '\n');
-						loadColors(colormaps.at(colorCounter));
-						redraw = true;
-						break;
-					case sf::Keyboard::I:
-						maxIterations = iterations.at(itCount);
-						debugstring.append("Changing max iterations to " + std::to_string(iterations.at(itCount)) + '\n');
-						itCount++;
-						if (itCount >= iterations.size()) {
-							itCount = 0;
-						}
-						redraw = true;
-						break;
-					default:
-						redraw = true;
-						break;
-					}
-				}
-			default:
-				break;
-			}
-		}
-	}
-	delete task;
-	delete a;
-	delete[] arr;
-} */
 
 int main(int argc, char *argv[])
 {
@@ -272,7 +132,7 @@ int main(int argc, char *argv[])
 	window->setFramerateLimit(30);
 	
 	// Color management
-	std::array<std::string, 5> colormaps = { "./res/jet.csv", "./res/pink.csv", "./res/parula.csv", "./res/summer.csv", "./res/gray.csv" };
+	std::array<std::string, 6> colormaps = { "./res/jet.csv", "./res/pink.csv", "./res/parula.csv", "./res/summer.csv", "./res/gray.csv", "SuperDuper" };
 	std::size_t colorCounter = 0;
 	if (!loadColors(colormaps.at(colorCounter))) {
 		std::cerr << "Could not load colors.";
@@ -319,6 +179,8 @@ int main(int argc, char *argv[])
 		}
 		// worker für Mandelbrot abfragen
 		if (redraw_active) {
+			texture.update(arr);
+			sprite.setTexture(texture);
 			std::future_status status = future.wait_for(t1);
 			if (status == std::future_status::ready && a != NULL) {
 				a->join();
@@ -412,9 +274,17 @@ int main(int argc, char *argv[])
 						colorCounter++;
 						if (colorCounter >= colormaps.size())
 							colorCounter = 0;
-						debugstring.append("Loading colormap: " + colormaps.at(colorCounter) + '\n');
-						loadColors(colormaps.at(colorCounter));
+						debugstring.append("Loading colormap: " + colormaps.at(colorCounter) + " at Index: " + std::to_string(colorCounter) + '\n');
+						debugstring.append("Colormap[0]: " + ColorMap[0].tostring() + " Last: " + ColorMap[C_MAP_LEN-1].tostring() + '\n');
+						if (colorCounter == 5) {
+							color start(0,0,131,255);
+							color endd(128,0,0,255);
+							loadColorGradient(start, endd, C_MAP_LEN);
+						} else {
+							loadColors(colormaps.at(colorCounter));
+						}
 						redraw = true;
+						debugstring.append("Colormap[0]: " + ColorMap[0].tostring() + " Last: " + ColorMap[C_MAP_LEN-1].tostring() + '\n');
 						break;
 					case sf::Keyboard::I:
 						maxIterations = iterations.at(itCount);
